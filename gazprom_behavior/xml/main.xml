@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="main">
+  <BehaviorTree ID="ErrorHandelTree">
+    <Sequence>
+      <StopRobotAction/>
+      <ErrorHandler/>
+      <SubTree ID="ResetSystem"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="LaunchProgramm">
+    <Fallback>
+      <Inverter>
+        <IsMode mode="RUNNING"/>
+      </Inverter>
+      <Sequence>
+        <IsMarkSelected/>
+        <SetIORobotAction pin="Светофор"
+                          state="true"/>
+        <GetNumberCyclePaint number_cycle="{number_cycle}"/>
+        <Repeat num_cycles="{number_cycle}">
+          <Sequence>
+            <IsIORobotAction pin="ждем датчик"
+                             state="1"/>
+            <SetIORobotAction pin="Тут пистолет"
+                              state="true"/>
+            <ServoMoveRobotAction/>
+            <PaintCounterIncrement/>
+          </Sequence>
+        </Repeat>
+        <SubTree ID="ResetSystem"/>
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="ResetSystem">
+    <SetMode mode="WAITING"/>
+  </BehaviorTree>
+
+  <BehaviorTree ID="StopProgramm">
+    <Fallback>
+      <Inverter>
+        <IsMode mode="STOPPING"/>
+      </Inverter>
+      <Sequence>
+        <StopRobotAction/>
+        <SubTree ID="ResetSystem"/>
+        <SetIORobotAction pin="Светофор"
+                          state="1"/>
+      </Sequence>
+      <ErrorHandler/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="WaitProgramm">
+    <Fallback>
+      <Inverter>
+        <IsMode mode="WAITING"/>
+      </Inverter>
+      <SetIORobotAction pin="Светофор"
+                        state="1"/>
+    </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="main">
+    <KeepRunningUntilFailure>
+      <Fallback>
+        <ReactiveSequence>
+          <CheckConnectionRobot/>
+          <Fallback>
+            <Sequence>
+              <SubTree ID="LaunchProgramm"/>
+              <SubTree ID="StopProgramm"/>
+              <SubTree ID="WaitProgramm"/>
+            </Sequence>
+            <SubTree ID="ErrorHandelTree"/>
+          </Fallback>
+        </ReactiveSequence>
+        <AlwaysSuccess/>
+      </Fallback>
+    </KeepRunningUntilFailure>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CheckConnectionRobot"/>
+    <Action ID="ErrorHandler"/>
+    <Action ID="GetNumberCyclePaint"
+            editable="true">
+      <output_port name="number_cycle"
+                   type="int"/>
+    </Action>
+    <Action ID="IsIORobotAction">
+      <input_port name="pin"
+                  type="std::string"/>
+      <input_port name="state"
+                  type="bool"/>
+    </Action>
+    <Action ID="IsMarkSelected"/>
+    <Action ID="IsMode">
+      <input_port name="mode"
+                  type="ModeProgramm"/>
+    </Action>
+    <Action ID="PaintCounterIncrement"/>
+    <Action ID="ServoMoveRobotAction"
+            editable="true"/>
+    <Action ID="SetIORobotAction">
+      <input_port name="pin"
+                  type="std::string"/>
+      <input_port name="state"
+                  type="bool"/>
+    </Action>
+    <Action ID="SetMode">
+      <input_port name="mode"
+                  type="ModeProgramm"/>
+    </Action>
+    <Action ID="StopRobotAction"/>
+  </TreeNodesModel>
+
+</root>
